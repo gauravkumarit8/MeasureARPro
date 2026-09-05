@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.measurear.pro.core.database"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig { minSdk = 24 }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

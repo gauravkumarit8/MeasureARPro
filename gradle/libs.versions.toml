@@ -1,12 +1,24 @@
 [versions]
-agp = "8.6.0"
+# AGP 8.9.1 is Google's documented minimum for compileSdk 36; pinned to 8.12.0
+# (latest stable 8.x) to get compileSdk 36 as an officially supported target
+# rather than just a compatibility warning, while avoiding AGP 9.0's breaking
+# DSL changes (built-in Kotlin, removal of the org.jetbrains.kotlin.android
+# plugin) — that migration is a separate, deliberate decision for later.
+agp = "8.12.0"
 kotlin = "2.0.21"
 coreKtx = "1.13.1"
 lifecycle = "2.8.6"
 activityCompose = "1.9.2"
 composeBom = "2024.09.03"
 navigationCompose = "2.8.1"
-arcore = "1.44.0"
+# ARCore 1.45.0+ recompiled its native libraries with 16 KB page-size alignment
+# (Android 15+ requirement, enforced by Play Console since late 2025). 1.44.0
+# predates that fix and would trigger the same "does not support 16 KB" console
+# warning as the sqlcipher libraries did in your other app.
+arcore = "1.45.0"
+# SceneView wraps Filament; verify its shipped native libs pass Play Console's
+# 16 KB page-size check when you first build a release bundle — bump to
+# whatever's current if the console flags it, same as the ARCore note above.
 sceneview = "2.2.1"
 room = "2.6.1"
 billing = "7.1.1"

@@ -21,8 +21,8 @@ export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform
 yes | sdkmanager --licenses > /dev/null || true
 sdkmanager --install \
   "platform-tools" \
-  "platforms;android-35" \
-  "build-tools;35.0.0" > /dev/null
+  "platforms;android-36" \
+  "build-tools;36.0.0" > /dev/null
 
 echo "export ANDROID_HOME=$ANDROID_HOME" >> "$HOME/.bashrc"
 echo "export PATH=\$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools" >> "$HOME/.bashrc"

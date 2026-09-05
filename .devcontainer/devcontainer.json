@@ -5,7 +5,7 @@
     "ghcr.io/devcontainers/features/java:1": {
       "version": "17",
       "installGradle": true,
-      "gradleVersion": "8.9"
+      "gradleVersion": "8.13"
     }
   },
   "postCreateCommand": "bash .devcontainer/setup-android-sdk.sh",
