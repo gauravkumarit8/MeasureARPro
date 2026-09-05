@@ -24,8 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.google.ar.core.Config
 import com.measurear.pro.core.ar.ArAvailability
 import com.measurear.pro.core.ar.ArSessionManager
+import io.github.sceneview.ar.ARScene
+import io.github.sceneview.rememberEngine
+import io.github.sceneview.rememberModelLoader
+import io.github.sceneview.rememberOnGestureListener
 
 /**
  * PRD Wireframe 1: default landing screen. Handles, in order:
@@ -111,13 +116,11 @@ private fun ArMeasureContent(activity: Activity) {
 
 /**
  * Live AR camera feed + plane visualization, via SceneView's ARScene composable
- * (io.github.sceneview:arsceneview). This wiring reflects SceneView's
- * documented Compose pattern at the time this was written — the remember*()
- * helper names (rememberEngine, rememberModelLoader, etc.) and ARScene's
- * parameter names have shifted across SceneView versions before, so if this
- * doesn't compile against the pinned version in libs.versions.toml, check
- * SceneView's current sample app for the exact current signatures rather than
- * guessing further from here.
+ * (io.github.sceneview:arsceneview). This wiring is now confirmed against
+ * SceneView's own published README example (github.com/SceneView/sceneview),
+ * not guessed — ARScene only needs engine + modelLoader (no separate view/
+ * collisionSystem params, those are for the plain 3D Scene composable), and
+ * rememberOnGestureListener lives in the top-level io.github.sceneview package.
  *
  * No 3D marker rendering at placed points yet (would need childNodes with a
  * loaded model/primitive) — intentionally deferred rather than guessed, since
@@ -130,33 +133,29 @@ private fun ArSceneContent(
     viewModel: MeasureViewModel,
     uiState: MeasureUiState
 ) {
-    val engine = io.github.sceneview.rememberEngine()
-    val modelLoader = io.github.sceneview.rememberModelLoader(engine)
-    val collisionSystem = io.github.sceneview.rememberCollisionSystem(engine)
-    val view = io.github.sceneview.rememberView(engine)
+    val engine = rememberEngine()
+    val modelLoader = rememberModelLoader(engine)
 
     Box(modifier = Modifier.fillMaxSize()) {
-        io.github.sceneview.ar.ARScene(
+        ARScene(
             modifier = Modifier.fillMaxSize(),
             engine = engine,
-            view = view,
             modelLoader = modelLoader,
-            collisionSystem = collisionSystem,
             planeRenderer = true,
             sessionConfiguration = { session, config ->
-                config.planeFindingMode = com.google.ar.core.Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
-                config.lightEstimationMode = com.google.ar.core.Config.LightEstimationMode.DISABLED
-                config.depthMode = if (session.isDepthModeSupported(com.google.ar.core.Config.DepthMode.AUTOMATIC)) {
-                    com.google.ar.core.Config.DepthMode.AUTOMATIC
+                config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
+                config.lightEstimationMode = Config.LightEstimationMode.DISABLED
+                config.depthMode = if (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
+                    Config.DepthMode.AUTOMATIC
                 } else {
-                    com.google.ar.core.Config.DepthMode.DISABLED
+                    Config.DepthMode.DISABLED
                 }
             },
             onSessionUpdated = { _, updatedFrame ->
                 // Feeds ArSessionManager's hit-testing — see placePoint().
                 arSessionManager.onNewFrame(updatedFrame)
             },
-            onGestureListener = io.github.sceneview.node.rememberOnGestureListener(
+            onGestureListener = rememberOnGestureListener(
                 onSingleTapConfirmed = { motionEvent, _ ->
                     viewModel.onTapAt(motionEvent.x, motionEvent.y)
                 }
