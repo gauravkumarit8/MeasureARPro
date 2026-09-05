@@ -27,5 +27,6 @@ dependencies {
     implementation(libs.activity.compose)
     // ContextCompat.checkSelfPermission
     implementation(libs.core.ktx)
+    implementation(libs.coroutines.android)
     implementation(libs.sceneview)
 }

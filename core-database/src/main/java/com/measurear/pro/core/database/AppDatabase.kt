@@ -2,6 +2,7 @@ package com.measurear.pro.core.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.measurear.pro.core.database.dao.MeasurementDao
 import com.measurear.pro.core.database.entities.FurniturePresetEntity
 import com.measurear.pro.core.database.entities.MeasurementEntity
 import com.measurear.pro.core.database.entities.RoomPlanEntity
@@ -17,6 +18,7 @@ import com.measurear.pro.core.database.entities.RoomPlanEntity
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
-    // Phase 1: add abstract DAO accessors (MeasurementDao, RoomPlanDao, FurniturePresetDao)
-    // as each feature module needs them, rather than defining all DAOs up front.
+    abstract fun measurementDao(): MeasurementDao
+    // Phase 3/4: add roomPlanDao() and furniturePresetDao() when those features
+    // actually need persistence — no point defining unused DAOs speculatively.
 }

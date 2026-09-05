@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,6 +28,8 @@ import androidx.core.content.ContextCompat
 import com.google.ar.core.Config
 import com.measurear.pro.core.ar.ArAvailability
 import com.measurear.pro.core.ar.ArSessionManager
+import com.measurear.pro.core.database.DatabaseProvider
+import com.measurear.pro.core.database.repository.RoomMeasurementRepository
 import io.github.sceneview.ar.ARScene
 import io.github.sceneview.rememberEngine
 import io.github.sceneview.rememberModelLoader
@@ -90,7 +93,13 @@ private fun CameraPermissionGate(showRationale: Boolean, onRequest: () -> Unit, 
 @Composable
 private fun ArMeasureContent(activity: Activity) {
     val arSessionManager = remember { ArSessionManager() }
-    val viewModel = remember { MeasureViewModel(arSessionManager) }
+    val repository = remember {
+        RoomMeasurementRepository(DatabaseProvider.getDatabase(activity).measurementDao())
+    }
+    val viewModel = remember { MeasureViewModel(arSessionManager, repository) }
+    DisposableEffect(viewModel) {
+        onDispose { viewModel.onCleared() }
+    }
     val uiState by viewModel.uiState.collectAsState()
     var availability by remember { mutableStateOf<ArAvailability?>(null) }
 
@@ -116,16 +125,19 @@ private fun ArMeasureContent(activity: Activity) {
 
 /**
  * Live AR camera feed + plane visualization, via SceneView's ARScene composable
- * (io.github.sceneview:arsceneview). This wiring is now confirmed against
- * SceneView's own published README example (github.com/SceneView/sceneview),
- * not guessed — ARScene only needs engine + modelLoader (no separate view/
- * collisionSystem params, those are for the plain 3D Scene composable), and
- * rememberOnGestureListener lives in the top-level io.github.sceneview package.
+ * (io.github.sceneview:arsceneview). Core wiring (engine/modelLoader, session
+ * config, frame feed, tap gesture) is confirmed against SceneView's own
+ * published README example.
  *
- * No 3D marker rendering at placed points yet (would need childNodes with a
- * loaded model/primitive) — intentionally deferred rather than guessed, since
- * it's a visual nice-to-have, not required for the measurement math to work.
- * The tap flow works and reports readouts without it.
+ * Marker rendering (a small sphere at each placed point) is the one piece
+ * still built from partial evidence rather than a single confirmed end-to-end
+ * example for our pinned 2.2.1 version specifically: SphereNode's constructor
+ * and ARScene's childNodes parameter are each individually documented in
+ * SceneView sources, but not together in one example I could verify against
+ * this exact version. If this doesn't compile, the likely culprits are
+ * SphereNode's exact constructor params or whether ARScene (vs. only the
+ * plain Scene composable) accepts childNodes directly — check those two
+ * first rather than the rest of this function.
  */
 @Composable
 private fun ArSceneContent(
@@ -135,12 +147,38 @@ private fun ArSceneContent(
 ) {
     val engine = rememberEngine()
     val modelLoader = rememberModelLoader(engine)
+    val materialLoader = io.github.sceneview.rememberMaterialLoader(engine)
+    val childNodes = io.github.sceneview.rememberNodes()
+
+    // Rebuild marker nodes whenever the set of active anchors changes (a point
+    // is placed, or reset clears them). Old nodes are cleared first — SceneView
+    // nodes aren't automatically GC'd from childNodes just because the anchor
+    // list changed elsewhere.
+    LaunchedEffect(uiState.activeAnchors) {
+        childNodes.clear()
+        uiState.activeAnchors.forEach { anchor ->
+            childNodes.add(
+                io.github.sceneview.node.AnchorNode(engine = engine, anchor = anchor).apply {
+                    addChildNode(
+                        io.github.sceneview.node.SphereNode(
+                            engine = engine,
+                            radius = 0.01f,
+                            materialInstance = materialLoader.createColorInstance(
+                                androidx.compose.ui.graphics.Color.Red
+                            )
+                        )
+                    )
+                }
+            )
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         ARScene(
             modifier = Modifier.fillMaxSize(),
             engine = engine,
             modelLoader = modelLoader,
+            childNodes = childNodes,
             planeRenderer = true,
             sessionConfiguration = { session, config ->
                 config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL

@@ -15,6 +15,12 @@ import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationExceptio
 
 data class ArPoint(val x: Float, val y: Float, val z: Float)
 
+/** Point position plus the ARCore Anchor it's attached to — the anchor is what
+ *  lets a visual marker node stay fixed in world space as the camera moves.
+ *  Caller (ViewModel) is responsible for calling anchor.detach() when the
+ *  point is no longer needed (measurement reset), or it leaks tracking resources. */
+data class PlacedPoint(val position: ArPoint, val anchor: com.google.ar.core.Anchor)
+
 fun distanceBetween(a: ArPoint, b: ArPoint): Double {
     val dx = (a.x - b.x).toDouble()
     val dy = (a.y - b.y).toDouble()
@@ -125,10 +131,12 @@ class ArSessionManager {
 
     /**
      * Hit-tests the given screen coordinate against detected planes/points in
-     * the most recent frame. Returns null if tracking isn't stable yet or no
-     * surface was hit — caller should prompt the user to keep scanning.
+     * the most recent frame, and creates an anchor at the hit so a visual
+     * marker can be attached (see PlacedPoint doc). Returns null if tracking
+     * isn't stable yet or no surface was hit — caller should prompt the user
+     * to keep scanning.
      */
-    fun placePoint(screenX: Float, screenY: Float): ArPoint? {
+    fun placePoint(screenX: Float, screenY: Float): PlacedPoint? {
         val frame = latestFrame ?: return null
         if (frame.camera.trackingState != TrackingState.TRACKING) return null
 
@@ -139,8 +147,9 @@ class ArSessionManager {
                 trackable is com.google.ar.core.Point
         } ?: return null
 
-        val pose = best.hitPose
-        return ArPoint(pose.tx(), pose.ty(), pose.tz())
+        val anchor = best.createAnchor()
+        val pose = anchor.pose
+        return PlacedPoint(ArPoint(pose.tx(), pose.ty(), pose.tz()), anchor)
     }
 
     fun close() {
