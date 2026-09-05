@@ -35,15 +35,17 @@ sealed class ArAvailability {
 }
 
 /**
- * Wraps ARCore session lifecycle, install/update flow, and hit-testing.
- * Call sequence expected by callers (see MeasureViewModel):
- *   1. resolveAvailability(activity) in onResume, every time (per Google's own
- *      guidance — availability can change if the user installs ARCore mid-session)
- *   2. If Ready: createSession(context), then resume()/pause() with the
- *      Activity lifecycle
- *   3. onNewFrame(frame) each render frame from the SceneView/GL surface
- *   4. placePoint(screenX, screenY) on tap
- *   5. close() when leaving the AR screen
+ * Wraps ARCore availability/install-flow checking and hit-testing math.
+ *
+ * IMPORTANT: when rendering via SceneView's ARScene composable (as
+ * MeasureScreen does), SceneView creates and owns its own ARCore Session
+ * internally — createSession()/resume()/pause() below are NOT used in that
+ * path and would conflict with SceneView's session if called alongside it.
+ * They're kept for a hypothetical future custom-renderer path that doesn't
+ * go through SceneView. The methods actually used with SceneView are:
+ *   1. resolveAvailability(activity) — before showing ARScene at all
+ *   2. onNewFrame(frame) — fed from ARScene's onSessionUpdated callback
+ *   3. placePoint(x, y) — called from the tap gesture callback
  */
 class ArSessionManager {
 
@@ -89,7 +91,8 @@ class ArSessionManager {
     private val ArCoreApk.Availability.isTransient: Boolean
         get() = this == ArCoreApk.Availability.UNKNOWN_CHECKING
 
-    /** Call after resolveAvailability() returns Ready, once per AR screen entry. */
+    /** Call after resolveAvailability() returns Ready, once per AR screen entry.
+     *  NOT used on the SceneView path — see class-level doc comment above. */
     @Throws(
         UnavailableApkTooOldException::class,
         UnavailableSdkTooOldException::class,
