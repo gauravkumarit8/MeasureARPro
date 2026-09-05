@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">MeasureAR Pro</string>
+    <string name="tab_distance">Distance</string>
+    <string name="tab_area">Area</string>
+    <string name="tab_roomplan">Room Plan</string>
+    <string name="tab_fit">Fit</string>
+    <string name="tab_level">Level</string>
+    <string name="tab_ruler">Ruler</string>
+    <string name="tab_more">More</string>
+</resources>
