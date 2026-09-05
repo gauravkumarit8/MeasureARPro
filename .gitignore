@@ -1,39 +1,11 @@
-# Build outputs
-*/build/
-/build/
-*.apk
-*.aab
-*.ap_
-*.dex
-
-# Local configuration (machine-specific — never commit)
-local.properties
-keystore.properties
-*.jks
-*.keystore
-
-# Gradle
-.gradle/
-gradle-app.setting
-!gradle/wrapper/gradle-wrapper.jar
-!gradle/wrapper/gradle-wrapper.properties
-
-# Kotlin
-.kotlin/
-
-# IDE
-.idea/
 *.iml
-*.ipr
-*.iws
-.navigation/
-captures/
-.externalNativeBuild/
-.cxx/
-
-# OS
+.gradle/
+/local.properties
+/.idea/
 .DS_Store
-Thumbs.db
-
-# Logs
-*.log
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+*/build/
