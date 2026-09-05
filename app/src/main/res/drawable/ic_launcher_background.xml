@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Placeholder launcher background — replace with real brand art before
+     Play Store submission (Play Console also separately requires a 512x512
+     hi-res icon upload for the store listing itself, distinct from this). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#1F4E79"
+        android:pathData="M0,0h108v108h-108z" />
+</vector>
