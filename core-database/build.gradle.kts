@@ -17,7 +17,11 @@ android {
 
 dependencies {
     implementation(project(":domain"))
-    implementation(libs.room.runtime)
+    // api, not implementation: AppDatabase extends RoomDatabase, so any module
+    // that references AppDatabase directly (e.g. :feature-measure via
+    // DatabaseProvider) needs RoomDatabase itself on its own compile classpath,
+    // not just this module's.
+    api(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
 }

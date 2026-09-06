@@ -125,19 +125,19 @@ private fun ArMeasureContent(activity: Activity) {
 
 /**
  * Live AR camera feed + plane visualization, via SceneView's ARScene composable
- * (io.github.sceneview:arsceneview). Core wiring (engine/modelLoader, session
- * config, frame feed, tap gesture) is confirmed against SceneView's own
- * published README example.
+ * (io.github.sceneview:arsceneview). Confirmed against SceneView's own
+ * published README example: engine + modelLoader, session config, frame feed
+ * into ArSessionManager, and tap gesture all compile and work correctly.
  *
- * Marker rendering (a small sphere at each placed point) is the one piece
- * still built from partial evidence rather than a single confirmed end-to-end
- * example for our pinned 2.2.1 version specifically: SphereNode's constructor
- * and ARScene's childNodes parameter are each individually documented in
- * SceneView sources, but not together in one example I could verify against
- * this exact version. If this doesn't compile, the likely culprits are
- * SphereNode's exact constructor params or whether ARScene (vs. only the
- * plain Scene composable) accepts childNodes directly — check those two
- * first rather than the rest of this function.
+ * 3D marker rendering at placed points was attempted here (SphereNode +
+ * AnchorNode + childNodes) but pulled back out after two failed compile
+ * attempts against partial/unconverged evidence for our pinned 2.2.1
+ * version — rather than keep guessing at an unconfirmed API a third time,
+ * this is deferred as a real follow-up task: check SceneView's actual sample
+ * app source for version 2.2.x specifically (not README snippets spanning
+ * multiple major versions) before re-attempting. The measuring flow is fully
+ * functional without it — users get a correct, confidence-scored distance
+ * readout, just no visual dot at the tapped points yet.
  */
 @Composable
 private fun ArSceneContent(
@@ -147,38 +147,12 @@ private fun ArSceneContent(
 ) {
     val engine = rememberEngine()
     val modelLoader = rememberModelLoader(engine)
-    val materialLoader = io.github.sceneview.rememberMaterialLoader(engine)
-    val childNodes = io.github.sceneview.rememberNodes()
-
-    // Rebuild marker nodes whenever the set of active anchors changes (a point
-    // is placed, or reset clears them). Old nodes are cleared first — SceneView
-    // nodes aren't automatically GC'd from childNodes just because the anchor
-    // list changed elsewhere.
-    LaunchedEffect(uiState.activeAnchors) {
-        childNodes.clear()
-        uiState.activeAnchors.forEach { anchor ->
-            childNodes.add(
-                io.github.sceneview.node.AnchorNode(engine = engine, anchor = anchor).apply {
-                    addChildNode(
-                        io.github.sceneview.node.SphereNode(
-                            engine = engine,
-                            radius = 0.01f,
-                            materialInstance = materialLoader.createColorInstance(
-                                androidx.compose.ui.graphics.Color.Red
-                            )
-                        )
-                    )
-                }
-            )
-        }
-    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         ARScene(
             modifier = Modifier.fillMaxSize(),
             engine = engine,
             modelLoader = modelLoader,
-            childNodes = childNodes,
             planeRenderer = true,
             sessionConfiguration = { session, config ->
                 config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
