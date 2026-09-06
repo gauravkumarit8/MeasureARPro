@@ -22,6 +22,6 @@
   },
   "remoteEnv": {
     "ANDROID_HOME": "/home/vscode/android-sdk",
-    "PATH": "${containerEnv:PATH}:/home/vscode/android-sdk/cmdline-tools/latest/bin:/home/vscode/android-sdk/platform-tools"
+    "PATH": "${containerEnv:PATH}:/home/vscode/android-sdk/cmdline-tools/latest/bin:/home/vscode/android-sdk/platform-tools:/home/vscode/android-sdk/emulator"
   }
 }

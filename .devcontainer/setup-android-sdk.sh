@@ -25,6 +25,6 @@ sdkmanager --install \
   "build-tools;36.0.0" > /dev/null
 
 echo "export ANDROID_HOME=$ANDROID_HOME" >> "$HOME/.bashrc"
-echo "export PATH=\$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools" >> "$HOME/.bashrc"
+echo "export PATH=\$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator" >> "$HOME/.bashrc"
 
 echo "Android SDK installed at $ANDROID_HOME"
