@@ -35,6 +35,18 @@
             android:name="com.google.ar.core"
             android:value="optional" />
 
+        <!--
+          Required by the Play Services Ads library (pulled in via :core-ads).
+          Missing this causes an immediate crash on app launch, before any of
+          our own code runs — the SDK checks for it during its own
+          self-initialization. This is Google's public TEST App ID (safe to
+          ship in debug builds, shows only test ads) — replace with your real
+          AdMob App ID from admob.google.com before any Play Store release.
+        -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
